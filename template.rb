@@ -55,6 +55,8 @@
 # rails plugins
   run 'braid add -p git://github.com/rubyist/aasm.git'
   run 'braid add -p git://github.com/pjhyett/auto_migrations.git'
+  run 'braid add -p git://github.com/gumayunov/custom-err-msg.git'
+  run 'braid add -p git://github.com/railsgarden/message_block.git'
 
 # cucumber
   gem 'cucumber'

@@ -41,22 +41,28 @@
   run 'braid add git://github.com/adamlogic/jquery-jaxy.git public/vendor/jquery-jaxy'
 
 # gems
-  # gem 'RedCloth', :lib => 'redcloth'
   gem 'faker'
   gem 'mislav-will_paginate', :lib => 'will_paginate',  :source => 'http://gems.github.com'
+  gem 'rubyist-aasm', :lib => 'aasm', :source => 'http://gems.github.com'
   gem 'thoughtbot-paperclip', :lib => 'paperclip', :source => 'http://gems.github.com'
   gem 'thoughtbot-shoulda', :lib => 'shoulda', :source => 'http://gems.github.com'
   gem 'thoughtbot-factory_girl', :lib => 'factory_girl', :source => 'http://gems.github.com'
+  gem 'webrat'
+  # gem 'prawn'
+  # gem 'prawn-layout', :lib => 'prawn/layout'
+  # gem 'fastercsv'
+  # gem 'httparty'
+  # gem 'RedCloth', :lib => 'redcloth'
   rake 'gems:install', :sudo => true
   rake 'gems:unpack gems:build'
   git :add => '.'
   git :commit => "-am 'adding gems'"
 
 # rails plugins
-  run 'braid add -p git://github.com/rubyist/aasm.git'
-  run 'braid add -p git://github.com/pjhyett/auto_migrations.git'
   run 'braid add -p git://github.com/gumayunov/custom-err-msg.git'
   run 'braid add -p git://github.com/railsgarden/message_block.git'
+  # run 'braid add -p git://github.com/jnunemaker/user_stamp.git'
+  # run 'braid add -p git://github.com/pjhyett/auto_migrations.git'
 
 # cucumber
   gem 'cucumber'
@@ -72,7 +78,7 @@
   generate 'clearance'
   generate 'clearance_features'
 
-# open id
+# open id (cargo-culted, haven't tried it yet)
   # gem 'ruby-openid', :lib => 'openid', :version => '>=2.1.2'
   # rake 'gems:install', :sudo => true
   # rake 'gems:unpack gems:build'

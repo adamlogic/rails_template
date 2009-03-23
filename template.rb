@@ -1,46 +1,43 @@
-# delete unnecessary files
+# Delete unnecessary files
   run "rm README"
   run "rm public/index.html"
   run "rm public/favicon.ico"
   run "rm public/robots.txt"
   run "rm -f public/javascripts/*"
 
-# use HAML
+# Use HAML
   gem 'haml'
   rake 'gems:install', :sudo => true
   rake 'gems:unpack gems:build'
   run 'haml --rails .'
 
-# download jQuery
+# Download jQuery
   run "curl -L http://jqueryjs.googlecode.com/files/jquery-1.3.2.js > public/javascripts/jquery.js"
 
-# set up git repository
-  git :init
-  git :add => '.'
-  
-# copy database.yml for distribution use
+# Copy database.yml for distribution
   run "cp config/database.yml config/database.yml.example"
   
-# set up .gitignore files
+# Set up .gitignore files
   run "touch tmp/.gitignore log/.gitignore vendor/.gitignore"
   run "curl -L http://github.com/adamlogic/rails_template.git/files/.gitignore > .gitignore"
 
-# commit all work so far to the repository
+# Set up git repository
+  git :init
   git :add => '.'
-  git :commit => "-am 'Initial commit'"
+  git :commit => "-m 'Initial commit'"
 
-# track the latest stable Rails branch
+# Track the latest stable Rails branch
   run 'braid add git://github.com/rails/rails.git vendor/rails --branch 2-3-stable' 
 
-# jQuery plugins
+# JQuery plugins
   run 'mkdir public/vendor'
   git :add => '.'
-  git :commit => "-am 'prepare for third-party JS/CSS plugins'"
+  git :commit => "-m 'prepare for third-party JS/CSS plugins'"
   run 'braid add git://github.com/malsup/form.git public/vendor/jquery-form'
   run 'braid add git://github.com/adamlogic/jquery-always.git public/vendor/jquery-always'
   run 'braid add git://github.com/adamlogic/jquery-jaxy.git public/vendor/jquery-jaxy'
 
-# gems
+# Gems
   gem 'faker'
   gem 'mislav-will_paginate', :lib => 'will_paginate',  :source => 'http://gems.github.com'
   gem 'rubyist-aasm', :lib => 'aasm', :source => 'http://gems.github.com'
@@ -56,36 +53,36 @@
   rake 'gems:install', :sudo => true
   rake 'gems:unpack gems:build'
   git :add => '.'
-  git :commit => "-am 'adding gems'"
+  git :commit => "-m 'adding gems'"
 
-# rails plugins
+# Rails plugins
   run 'braid add -p git://github.com/gumayunov/custom-err-msg.git'
   run 'braid add -p git://github.com/railsgarden/message_block.git'
   # run 'braid add -p git://github.com/jnunemaker/user_stamp.git'
   # run 'braid add -p git://github.com/pjhyett/auto_migrations.git'
 
-# cucumber
+# Cucumber
   gem 'cucumber'
   rake 'gems:install', :sudo => true
   rake 'gems:unpack gems:build'
   git :add => '.'
-  git :commit => "-am 'adding cucumber'"
+  git :commit => "-m 'adding cucumber'"
 
-# authentication
+# Authentication
   gem 'thoughtbot-clearance', :lib => 'clearance', :source => 'http://gems.github.com'
   rake 'gems:install', :sudo => true
   rake 'gems:unpack gems:build'
   generate 'clearance'
   generate 'clearance_features'
 
-# open id (cargo-culted, haven't tried it yet)
+# Open id (cargo-culted, haven't tried it yet)
   # gem 'ruby-openid', :lib => 'openid', :version => '>=2.1.2'
   # rake 'gems:install', :sudo => true
   # rake 'gems:unpack gems:build'
   # git :add => '.'
-  # git :commit => "-am 'adding open id gem'"
+  # git :commit => "-m 'adding open id gem'"
   # run 'braid add -p git://github.com/rails/open_id_authentication.git'
   # rake 'open_id_authentication:db:create'
   # rake 'db:migrate'
   # git :add => '.'
-  # git :commit => "-am 'adding open id support'"
+  # git :commit => "-m 'adding open id support'"

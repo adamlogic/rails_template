@@ -5,17 +5,8 @@
   run "rm public/robots.txt"
   run "rm -f public/javascripts/*"
 
-# Use HAML
-  gem 'haml'
-  rake 'gems:install', :sudo => true
-  rake 'gems:unpack gems:build'
-  run 'haml --rails .'
-
-# Download jQuery
-  run "curl -L http://jqueryjs.googlecode.com/files/jquery-1.3.2.js > public/javascripts/jquery.js"
-
 # Copy database.yml for distribution
-  run "cp config/database.yml config/database.yml.example"
+  run "cp config/database.yml config/database.example.yml"
   
 # Set up .gitignore files
   run "touch tmp/.gitignore log/.gitignore vendor/.gitignore"
@@ -25,6 +16,20 @@
   git :init
   git :add => '.'
   git :commit => "-m 'Initial commit'"
+
+# Bootstrap
+  # run 'gem install adamlogic-rails_bootstrap'
+  # generate 'bootstrap'
+  # git :add => '.', :commit => "-m 'generated bootstrap files'"
+
+# Use HAML
+  gem 'haml'
+  rake 'gems:install', :sudo => true
+  rake 'gems:unpack gems:build'
+  run 'haml --rails .'
+
+# Download jQuery
+  run "curl -L http://jqueryjs.googlecode.com/files/jquery-1.3.2.js > public/javascripts/jquery.js"
 
 # Track the latest stable Rails branch
   run 'braid add git://github.com/rails/rails.git vendor/rails --branch 2-3-stable' 

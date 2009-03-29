@@ -44,13 +44,14 @@ public/javascripts/all.js
 # Track the latest stable Rails branch
   run 'braid add git://github.com/rails/rails.git vendor/rails --branch 2-3-stable' 
 
-# JQuery plugins
+# jQuery plugins and other JS/CSS widgets
   run 'mkdir public/vendor'
   git :add => '.'
   git :commit => "-m 'prepare for third-party JS/CSS plugins'"
   run 'braid add git://github.com/malsup/form.git public/vendor/jquery-form'
   run 'braid add git://github.com/adamlogic/jquery-always.git public/vendor/jquery-always'
   run 'braid add git://github.com/adamlogic/jquery-jaxy.git public/vendor/jquery-jaxy'
+  run 'braid add git://github.com/nathansmith/960-grid-system.git public/vendor/960-grid-system'
 
 # Gems
   gem 'faker'

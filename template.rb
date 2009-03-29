@@ -73,7 +73,8 @@ public/javascripts/all.js
 # Rails plugins
   run 'braid add -p git://github.com/gumayunov/custom-err-msg.git'
   run 'braid add -p git://github.com/railsgarden/message_block.git'
-  # run 'braid add -p git://github.com/jnunemaker/user_stamp.git'
+  run 'braid add -p git://github.com/adamlogic/message_block_extensions.git'
+  run 'braid add -p git://github.com/jnunemaker/user_stamp.git'
   # run 'braid add -p git://github.com/pjhyett/auto_migrations.git'
 
 # Cucumber

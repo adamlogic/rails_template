@@ -51,6 +51,7 @@ public/javascripts/all.js
   run 'braid add git://github.com/malsup/form.git public/vendor/jquery-form'
   run 'braid add git://github.com/adamlogic/jquery-always.git public/vendor/jquery-always'
   run 'braid add git://github.com/adamlogic/jquery-jaxy.git public/vendor/jquery-jaxy'
+  run 'braid add git://github.com/adamlogic/jquery-odds_and_ends.git public/vendor/jquery-odds_and_ends'
   run 'braid add git://github.com/nathansmith/960-grid-system.git public/vendor/960-grid-system'
 
 # Gems

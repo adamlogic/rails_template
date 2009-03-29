@@ -10,7 +10,17 @@
   
 # Set up .gitignore files
   run "touch tmp/.gitignore log/.gitignore vendor/.gitignore"
-  run "curl -L http://github.com/adamlogic/rails_template.git/files/.gitignore > .gitignore"
+  file '.gitignore', <<-CODE
+.DS_Store
+log/*.log
+tmp/**/*
+config/database.yml
+db/*.sqlite3
+coverage
+public/system/**/*
+public/stylesheets/all.css
+public/javascripts/all.js
+  CODE
 
 # Set up git repository
   git :init

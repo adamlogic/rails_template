@@ -24,8 +24,7 @@ public/javascripts/all.js
 
 # Set up git repository
   git :init
-  git :add => '.'
-  git :commit => "-m 'Initial commit'"
+  git :add => '.', :commit => "-m 'Initial commit'"
 
 # Bootstrap
   # run 'gem install adamlogic-rails_bootstrap'
@@ -37,22 +36,23 @@ public/javascripts/all.js
   rake 'gems:install', :sudo => true
   rake 'gems:unpack gems:build'
   run 'haml --rails .'
+  git :add => '.', :commit => "-m 'adding haml'"
 
 # Download jQuery
   run "curl -L http://jqueryjs.googlecode.com/files/jquery-1.3.2.js > public/javascripts/jquery.js"
+  git :add => '.', :commit => "-m 'adding jquery'"
 
 # Track the latest stable Rails branch
   run 'braid add git://github.com/rails/rails.git vendor/rails --branch 2-3-stable' 
 
 # jQuery plugins and other JS/CSS widgets
   run 'mkdir public/vendor'
-  git :add => '.'
-  git :commit => "-m 'prepare for third-party JS/CSS plugins'"
+  git :add => '.', :commit => "-m 'prepare for third-party JS/CSS plugins'"
   run 'braid add git://github.com/malsup/form.git public/vendor/jquery-form'
   run 'braid add git://github.com/adamlogic/jquery-always.git public/vendor/jquery-always'
   run 'braid add git://github.com/adamlogic/jquery-jaxy.git public/vendor/jquery-jaxy'
   run 'braid add git://github.com/adamlogic/jquery-odds_and_ends.git public/vendor/jquery-odds_and_ends'
-  run 'braid add git://github.com/nathansmith/960-grid-system.git public/vendor/960-grid-system'
+  run 'braid add git://github.com/nathansmith/960-grid-system.git public/vendor/960-grid-system' if yes?('Use 960 Grid System?')
 
 # Gems
   gem 'faker'
@@ -69,8 +69,7 @@ public/javascripts/all.js
   # gem 'RedCloth', :lib => 'redcloth'
   rake 'gems:install', :sudo => true
   rake 'gems:unpack gems:build'
-  git :add => '.'
-  git :commit => "-m 'adding gems'"
+  git :add => '.', :commit => "-m 'adding gems'"
 
 # Rails plugins
   run 'braid add -p git://github.com/gumayunov/custom-err-msg.git'
@@ -83,8 +82,7 @@ public/javascripts/all.js
   gem 'cucumber'
   rake 'gems:install', :sudo => true
   rake 'gems:unpack gems:build'
-  git :add => '.'
-  git :commit => "-m 'adding cucumber'"
+  git :add => '.', :commit => "-m 'adding cucumber'"
 
 # Authentication
   gem 'thoughtbot-clearance', :lib => 'clearance', :source => 'http://gems.github.com'
@@ -92,6 +90,7 @@ public/javascripts/all.js
   rake 'gems:unpack gems:build'
   generate 'clearance'
   generate 'clearance_features'
+  git :add => '.', :commit => "-m 'adding clearance'"
 
 # Open id (cargo-culted, haven't tried it yet)
   # gem 'ruby-openid', :lib => 'openid', :version => '>=2.1.2'

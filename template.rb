@@ -40,7 +40,8 @@ public/javascripts/all.js
   git :add => '.', :commit => "-m 'adding haml'"
 
 # Download jQuery
-  run "curl -L http://jquery.com/src/jquery-latest.js > public/javascripts/jquery.js"
+  run "curl -L http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js > public/javascripts/jquery.js"
+  run "curl -L http://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.js > public/javascripts/jquery-ui.js"
   git :add => '.', :commit => "-m 'adding jquery'"
 
 # Track the latest stable Rails branch

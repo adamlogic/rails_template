@@ -13,6 +13,7 @@
   file '.gitignore', <<-CODE
 .DS_Store
 log/*.log
+tmp/*
 tmp/**/*
 config/database.yml
 db/*.sqlite3
@@ -39,7 +40,7 @@ public/javascripts/all.js
   git :add => '.', :commit => "-m 'adding haml'"
 
 # Download jQuery
-  run "curl -L http://jqueryjs.googlecode.com/files/jquery-1.3.2.js > public/javascripts/jquery.js"
+  run "curl -L http://jquery.com/src/jquery-latest.js > public/javascripts/jquery.js"
   git :add => '.', :commit => "-m 'adding jquery'"
 
 # Track the latest stable Rails branch

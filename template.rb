@@ -2,7 +2,7 @@
 puts
 interwebs = yes?('Are you connected to the Interwebs?')
 deploy = interwebs && yes?('Want to deploy to Heroku?')
-appname = `pwd`.split('/').last
+appname = `pwd`.split('/').last.strip
 
 # Delete unneeded files
 run 'rm README'
@@ -71,11 +71,11 @@ CODE
 git :add => '.', :commit => "-m 'set up a new root route'"
 
 # Add global constants for clearance
-append_file 'config/environment.rb', "\nDO_NOT_REPLY = 'donotreply@#{appname}.com'"
 append_file 'config/environments/development.rb', "\nHOST = 'localhost:3000'"
 append_file 'config/environments/test.rb', "\nHOST = 'localhost:3000'"
 append_file 'config/environments/cucumber.rb', "\nHOST = 'localhost:3000'"
 append_file 'config/environments/production.rb', "\nHOST = '#{appname}.com'"
+gsub_file 'config/environment.rb', /RAILS_GEM_VERSION.*/, "\\0\n\nDO_NOT_REPLY = 'donotreply@#{appname}.com'"
 git :add => '.', :commit => "-m 'add constants for clearance'"
 
 # Start with a reasonable layout to work with

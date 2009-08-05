@@ -10,7 +10,7 @@ end
 # Gather some info
 puts
 interwebs = yes?('Are you connected to the Interwebs?')
-deploy = yes?('Want to deploy to Heroku?')
+deploy = interwebs && yes?('Want to deploy to Heroku?')
 appname = `pwd`.split('/').last
 
 # Delete unneeded files
@@ -96,6 +96,6 @@ if deploy
   run "heroku create"
   run "heroku rename #{appname}"
   git :push => 'heroku master'
-  run 'heroku db:migrate'
+  run 'heroku rake db:migrate'
   run 'heroku open'
 end

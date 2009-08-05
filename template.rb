@@ -1,12 +1,3 @@
-# Helper methods
-
-def append(filename, content)
-  existing_content = File.read(filename)
-  new_content = existing_content + "\n" + content
-  file filename, new_content
-end
-
-
 # Gather some info
 puts
 interwebs = yes?('Are you connected to the Interwebs?')
@@ -80,11 +71,11 @@ CODE
 git :add => '.', :commit => "-m 'set up a new root route'"
 
 # Add global constants for clearance
-append 'config/environment.rb', "\nDO_NOT_REPLY = 'donotreply@#{appname}.com'"
-append 'config/environments/development.rb', "\nHOST = 'localhost:3000'"
-append 'config/environments/test.rb', "\nHOST = 'localhost:3000'"
-append 'config/environments/cucumber.rb', "\nHOST = 'localhost:3000'"
-append 'config/environments/production.rb', "\nHOST = '#{appname}.com'"
+append_file 'config/environment.rb', "\nDO_NOT_REPLY = 'donotreply@#{appname}.com'"
+append_file 'config/environments/development.rb', "\nHOST = 'localhost:3000'"
+append_file 'config/environments/test.rb', "\nHOST = 'localhost:3000'"
+append_file 'config/environments/cucumber.rb', "\nHOST = 'localhost:3000'"
+append_file 'config/environments/production.rb', "\nHOST = '#{appname}.com'"
 git :add => '.', :commit => "-m 'add constants for clearance'"
 
 # Start with a reasonable layout to work with

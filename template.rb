@@ -1,108 +1,101 @@
-# Delete unnecessary files
-  run "rm README"
-  run "rm public/index.html"
-  run "rm public/favicon.ico"
-  run "rm public/robots.txt"
-  run "rm -f public/javascripts/*"
+# Helper methods
 
-# Copy database.yml for distribution
-  run "cp config/database.yml config/database.example.yml"
-  
-# Set up .gitignore files
-  run "touch tmp/.gitignore log/.gitignore vendor/.gitignore"
-  file '.gitignore', <<-CODE
+def append(filename, content)
+  existing_content = File.read(filename)
+  new_content = existing_content + "\n" + content
+  file filename, new_content
+end
+
+
+# Gather some info
+puts
+interwebs = yes?('Are you connected to the Interwebs?')
+deploy = yes?('Want to deploy to Heroku?')
+appname = `pwd`.split('/').last
+
+# Delete unneeded files
+run 'rm README'
+run 'rm public/index.html'
+run 'rm public/favicon.ico'
+run 'rm public/robots.txt'
+run 'rm -f public/javascripts/*'
+
+# Prepare .gitignore files
+run 'touch tmp/.gitignore log/.gitignore vendor/.gitignore'
+file '.gitignore', <<-CODE
 .DS_Store
 log/*.log
 tmp/*
 tmp/**/*
-config/database.yml
 db/*.sqlite3
 coverage
 public/system/**/*
 public/stylesheets/all.css
 public/javascripts/all.js
-  CODE
+CODE
 
 # Set up git repository
-  git :init
-  git :add => '.', :commit => "-m 'Initial commit'"
+git :init
+git :add => '.', :commit => "-m 'first!'"
 
-# Bootstrap
-  # run 'gem install adamlogic-rails_bootstrap'
-  # generate 'bootstrap'
-  # git :add => '.', :commit => "-m 'generated bootstrap files'"
-
-# Use HAML
-  gem 'haml'
-  rake 'gems:install', :sudo => true
-  rake 'gems:unpack gems:build'
-  run 'haml --rails .'
-  git :add => '.', :commit => "-m 'adding haml'"
+# Freeze Rails
+rake 'rails:freeze:gems'
+git :add => '.', :commit => "-m 'freeze current rails version'"
 
 # Download jQuery
-  run "curl -L http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js > public/javascripts/jquery.js"
-  run "curl -L http://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.js > public/javascripts/jquery-ui.js"
-  git :add => '.', :commit => "-m 'adding jquery'"
-
-# Track the latest stable Rails branch
-  run 'braid add git://github.com/rails/rails.git vendor/rails --branch 2-3-stable' 
-
-# jQuery plugins and other JS/CSS widgets
-  run 'mkdir public/vendor'
-  git :add => '.', :commit => "-m 'prepare for third-party JS/CSS plugins'"
-  run 'braid add git://github.com/malsup/form.git public/vendor/jquery-form'
-  run 'braid add git://github.com/adamlogic/jquery-always.git public/vendor/jquery-always'
-  run 'braid add git://github.com/adamlogic/jquery-jaxy.git public/vendor/jquery-jaxy'
-  run 'braid add git://github.com/adamlogic/jquery-odds_and_ends.git public/vendor/jquery-odds_and_ends'
-  run 'braid add git://github.com/malsup/form.git public/vendor/jquery-form'
-  run 'braid add git://github.com/nathansmith/960-grid-system.git public/vendor/960-grid-system' if yes?('Use 960 Grid System?')
+if interwebs
+  run 'curl -L http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js > public/javascripts/jquery.js'
+else
+  run 'cp ~/projects/rails_template/files/jquery.js public/javascripts/jquery.js'
+end
+git :add => '.', :commit => "-m 'add jquery'"
 
 # Gems
-  gem 'faker'
-  gem 'mislav-will_paginate', :lib => 'will_paginate',  :source => 'http://gems.github.com'
-  gem 'rubyist-aasm', :lib => 'aasm', :source => 'http://gems.github.com'
-  gem 'thoughtbot-paperclip', :lib => 'paperclip', :source => 'http://gems.github.com'
-  gem 'thoughtbot-shoulda', :lib => 'shoulda', :source => 'http://gems.github.com'
-  gem 'thoughtbot-factory_girl', :lib => 'factory_girl', :source => 'http://gems.github.com'
-  gem 'webrat'
-  # gem 'prawn'
-  # gem 'prawn-layout', :lib => 'prawn/layout'
-  # gem 'fastercsv'
-  # gem 'httparty'
-  # gem 'RedCloth', :lib => 'redcloth'
-  rake 'gems:install', :sudo => true
-  rake 'gems:unpack gems:build'
-  git :add => '.', :commit => "-m 'adding gems'"
-
-# Rails plugins
-  run 'braid add -p git://github.com/gumayunov/custom-err-msg.git'
-  run 'braid add -p git://github.com/railsgarden/message_block.git'
-  run 'braid add -p git://github.com/adamlogic/message_block_extensions.git'
-  run 'braid add -p git://github.com/jnunemaker/user_stamp.git'
-  # run 'braid add -p git://github.com/pjhyett/auto_migrations.git'
+gem 'webrat'
+gem 'thoughtbot-factory_girl', :lib => 'factory_girl', :source  => "http://gems.github.com"
+gem 'thoughtbot-paperclip', :lib => 'paperclip', :source => 'http://gems.github.com'
+rake 'gems:unpack gems:build'
+git :add => '.', :commit => "-m 'add gems'"
 
 # Cucumber
-  gem 'cucumber'
-  rake 'gems:install', :sudo => true
-  rake 'gems:unpack gems:build'
-  git :add => '.', :commit => "-m 'adding cucumber'"
+gem 'cucumber'
+generate :cucumber
+rake 'gems:unpack gems:build'
+git :add => '.', :commit => "-m 'add cucumber'"
 
 # Authentication
-  gem 'thoughtbot-clearance', :lib => 'clearance', :source => 'http://gems.github.com'
-  rake 'gems:install', :sudo => true
-  rake 'gems:unpack gems:build'
-  generate 'clearance'
-  generate 'clearance_features'
-  git :add => '.', :commit => "-m 'adding clearance'"
+gem 'thoughtbot-clearance', :lib => 'clearance', :source => 'http://gems.github.com'
+rake 'gems:unpack'
+generate :clearance
+generate :clearance_features, '-f'
+rake 'db:migrate'
+git :add => '.', :commit => "-m 'add clearance'"
 
-# Open id (cargo-culted, haven't tried it yet)
-  # gem 'ruby-openid', :lib => 'openid', :version => '>=2.1.2'
-  # rake 'gems:install', :sudo => true
-  # rake 'gems:unpack gems:build'
-  # git :add => '.'
-  # git :commit => "-m 'adding open id gem'"
-  # run 'braid add -p git://github.com/rails/open_id_authentication.git'
-  # rake 'open_id_authentication:db:create'
-  # rake 'db:migrate'
-  # git :add => '.'
-  # git :commit => "-m 'adding open id support'"
+# Remove the default routes and add root to make clearance happy
+file 'config/routes.rb', <<-CODE
+ActionController::Routing::Routes.draw do |map|
+  map.root :controller => 'clearance/sessions', :action => 'new'
+end
+CODE
+git :add => '.', :commit => "-m 'set up a new root route'"
+
+# Add global constants for clearance
+append 'config/environment.rb', "\nDO_NOT_REPLY = 'donotreply@#{appname}.com'"
+append 'config/environments/development.rb', "\nHOST = 'localhost:3000'"
+append 'config/environments/test.rb', "\nHOST = 'localhost:3000'"
+append 'config/environments/cucumber.rb', "\nHOST = 'localhost:3000'"
+append 'config/environments/production.rb', "\nHOST = '#{appname}.com'"
+git :add => '.', :commit => "-m 'add constants for clearance'"
+
+# Start with a reasonable layout to work with
+generate :nifty_layout
+git :add => '.', :commit => "-m 'add nifty_layout'"
+
+# Set up and deploy on Heroku
+if deploy
+  run "heroku create"
+  run "heroku rename #{appname}"
+  git :push => 'heroku master'
+  run 'heroku db:migrate'
+  run 'heroku open'
+end

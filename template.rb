@@ -2,6 +2,8 @@
 puts
 interwebs = yes?('Are you connected to the Interwebs?')
 deploy = interwebs && yes?('Want to deploy to Heroku?')
+freeze = yes?('Freeze everything?')
+scaffold = ask('Generate a scaffold for your first resource [ex: posts title:string body:text] (leave blank to skip)')
 appname = `pwd`.split('/').last.strip
 
 # Delete unneeded files
@@ -13,16 +15,16 @@ run 'rm -f public/javascripts/*'
 
 # Prepare .gitignore files
 run 'touch tmp/.gitignore log/.gitignore vendor/.gitignore'
-file '.gitignore', <<-CODE
-.DS_Store
-log/*.log
-tmp/*
-tmp/**/*
-db/*.sqlite3
-coverage
-public/system/**/*
-public/stylesheets/all.css
-public/javascripts/all.js
+file '.gitignore', <<-CODE.gsub(/^\s*/,'')
+  .DS_Store
+  log/*.log
+  tmp/*
+  tmp/**/*
+  db/*.sqlite3
+  coverage
+  public/system/**/*
+  public/stylesheets/all.css
+  public/javascripts/all.js
 CODE
 
 # Set up git repository
@@ -30,8 +32,10 @@ git :init
 git :add => '.', :commit => "-m 'first!'"
 
 # Freeze Rails
-rake 'rails:freeze:gems'
-git :add => '.', :commit => "-m 'freeze current rails version'"
+if freeze
+  rake 'rails:freeze:gems'
+  git :add => '.', :commit => "-m 'freeze current rails version'"
+end
 
 # Download jQuery
 if interwebs
@@ -42,32 +46,37 @@ end
 git :add => '.', :commit => "-m 'add jquery'"
 
 # Gems
-gem 'webrat'
 gem 'thoughtbot-factory_girl', :lib => 'factory_girl', :source  => "http://gems.github.com"
 gem 'thoughtbot-paperclip', :lib => 'paperclip', :source => 'http://gems.github.com'
-rake 'gems:unpack gems:build'
+rake 'gems:unpack gems:build' if freeze
 git :add => '.', :commit => "-m 'add gems'"
 
 # Cucumber
-gem 'cucumber'
-generate :cucumber
-rake 'gems:unpack gems:build'
+generate :cucumber, '--testunit'
+rake 'gems:unpack gems:build' if freeze
 git :add => '.', :commit => "-m 'add cucumber'"
 
 # Authentication
 gem 'thoughtbot-clearance', :lib => 'clearance', :source => 'http://gems.github.com'
-rake 'gems:unpack'
+rake 'gems:unpack' if freeze
 generate :clearance
 generate :clearance_features, '-f'
 rake 'db:migrate'
 git :add => '.', :commit => "-m 'add clearance'"
 
-# Remove the default routes and add root to make clearance happy
-file 'config/routes.rb', <<-CODE
-ActionController::Routing::Routes.draw do |map|
-  map.root :controller => 'clearance/sessions', :action => 'new'
+# Scaffold first resource (assume authentication is required)
+if scaffold.present?
+  generate 'nifty_scaffold', scaffold
+  resource_name = scaffold.split(' ').first.downcase.pluralize
+  gsub_file "app/controllers/#{resource_name}_controller.rb", /.*ApplicationController.*/, "\\0\n  before_filter :authenticate\n"
+  root_route = ":controller => '#{resource_name}', :action => 'index'"
+  rake 'db:migrate'
+  git :add => '.', :commit => "-m 'generated scaffold for #{resource_name}'"
 end
-CODE
+
+# Remove the default routes and add root to make clearance happy
+root_route ||= ":controller => 'clearance/sessions', :action => 'new'"
+gsub_file 'config/routes.rb', /end\s*\Z/m, "\n  map.root #{root_route}\n\\0"
 git :add => '.', :commit => "-m 'set up a new root route'"
 
 # Add global constants for clearance
@@ -84,7 +93,14 @@ git :add => '.', :commit => "-m 'add nifty_layout'"
 
 # Set up and deploy on Heroku
 if deploy
-  run "heroku create"
+  file '.gems', <<-CODE.gsub(/^\s*/,'') unless freeze
+    rails --version 2.3.3
+    thoughtbot-paperclip --source gems.github.com
+    thoughtbot-clearance --source gems.github.com
+    thoughtbot-factory_girl --source gems.github.com
+  CODE
+  git :add => '.', :commit => "-m 'add .gems manifest for heroku'"
+  run 'heroku create'
   run "heroku rename #{appname}"
   git :push => 'heroku master'
   run 'heroku rake db:migrate'

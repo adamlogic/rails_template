@@ -4,6 +4,7 @@ interwebs = yes?('Are you connected to the Interwebs?')
 deploy = interwebs && yes?('Want to deploy to Heroku?')
 freeze = yes?('Freeze everything?')
 scaffold = ask('Generate a scaffold for your first resource [ex: post title:string body:text] (leave blank to skip):')
+resource_name = scaffold.split(' ').first.downcase.pluralize if scaffold.present?
 appname = `pwd`.split('/').last.strip
 domain = ask("Enter production domain if other than #{appname}.com:")
 domain = "#{appname}.com" if domain.blank?
@@ -74,20 +75,22 @@ generate :clearance_features, '-f'
 rake 'db:migrate'
 git :add => '.', :commit => "-m 'add clearance'"
 
+# Remove the default routes and add root to make clearance happy
+root_route = resource_name ? ":controller => '#{resource_name}', :action => 'index'" : ":controller => 'clearance/sessions', :action => 'new'"
+file 'config/routes.rb', <<-CODE.gsub(/^\s*/,'')
+  ActionController::Routing::Routes.draw do |map|
+    map.root #{root_route}
+  end
+CODE
+git :add => '.', :commit => "-m 'set up a new root route and remove defaults'"
+
 # Scaffold first resource (assume authentication is required)
 if scaffold.present?
   generate 'nifty_scaffold', scaffold
-  resource_name = scaffold.split(' ').first.downcase.pluralize
   gsub_file "app/controllers/#{resource_name}_controller.rb", /.*ApplicationController.*/, "\\0\n  before_filter :authenticate\n"
-  root_route = ":controller => '#{resource_name}', :action => 'index'"
   rake 'db:migrate'
   git :add => '.', :commit => "-m 'generated scaffold for #{resource_name}'"
 end
-
-# Remove the default routes and add root to make clearance happy
-root_route ||= ":controller => 'clearance/sessions', :action => 'new'"
-gsub_file 'config/routes.rb', /end\s*\Z/m, "\n  map.root #{root_route}\n\\0"
-git :add => '.', :commit => "-m 'set up a new root route'"
 
 # Add global constants for clearance
 append_file 'config/environments/development.rb', "\nHOST = 'localhost:3000'"

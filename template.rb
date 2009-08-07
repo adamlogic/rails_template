@@ -3,8 +3,14 @@ puts
 interwebs = yes?('Are you connected to the Interwebs?')
 deploy = interwebs && yes?('Want to deploy to Heroku?')
 freeze = yes?('Freeze everything?')
-scaffold = ask('Generate a scaffold for your first resource [ex: posts title:string body:text] (leave blank to skip)')
+scaffold = ask('Generate a scaffold for your first resource [ex: post title:string body:text] (leave blank to skip)')
 appname = `pwd`.split('/').last.strip
+domain = ask("Enter production domain if other than #{appname}.com:")
+domain = "#{appname}.com" if domain.blank?
+if gmail = yes?('Use Gmail to send mail?')
+  gmail_address = ask('Full gmail address:')
+  gmail_password = ask('Password:')
+end
 
 # Delete unneeded files
 run 'rm README'
@@ -48,6 +54,7 @@ git :add => '.', :commit => "-m 'add jquery'"
 # Gems
 gem 'thoughtbot-factory_girl', :lib => 'factory_girl', :source  => "http://gems.github.com"
 gem 'thoughtbot-paperclip', :lib => 'paperclip', :source => 'http://gems.github.com'
+gem 'ambethia-smtp-tls', :lib => 'smtp-tls', :source => 'http://gems.github.com/'
 rake 'gems:unpack gems:build' if freeze
 git :add => '.', :commit => "-m 'add gems'"
 
@@ -83,9 +90,23 @@ git :add => '.', :commit => "-m 'set up a new root route'"
 append_file 'config/environments/development.rb', "\nHOST = 'localhost:3000'"
 append_file 'config/environments/test.rb', "\nHOST = 'localhost:3000'"
 append_file 'config/environments/cucumber.rb', "\nHOST = 'localhost:3000'"
-append_file 'config/environments/production.rb', "\nHOST = '#{appname}.com'"
-gsub_file 'config/environment.rb', /RAILS_GEM_VERSION.*/, "\\0\n\nDO_NOT_REPLY = 'donotreply@#{appname}.com'"
+append_file 'config/environments/production.rb', "\nHOST = '#{domain}'"
+gsub_file 'config/environment.rb', /RAILS_GEM_VERSION.*/, "\\0\n\nDO_NOT_REPLY = 'donotreply@#{domain}'"
 git :add => '.', :commit => "-m 'add constants for clearance'"
+
+# Set up gmail for sending mail
+if gmail
+  environment <<-CODE.gsub(/^\s*/,''), :env => 'production'
+    config.action_mailer.smtp_settings = {
+      :address        => "smtp.gmail.com",
+      :port           => 587,
+      :domain         => "#{gmail_address}",
+      :authentication => :plain,
+      :user_name      => "#{gmail_address}",
+      :password       => "#{gmail_password}" 
+    }
+  CODE
+end
 
 # Start with a reasonable layout to work with
 generate :nifty_layout
@@ -98,6 +119,7 @@ if deploy
     thoughtbot-paperclip --source gems.github.com
     thoughtbot-clearance --source gems.github.com
     thoughtbot-factory_girl --source gems.github.com
+    ambethia-smtp-tls --source gems.github.com
   CODE
   git :add => '.', :commit => "-m 'add .gems manifest for heroku'"
   run 'heroku create'

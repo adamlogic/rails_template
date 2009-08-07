@@ -3,7 +3,7 @@ puts
 interwebs = yes?('Are you connected to the Interwebs?')
 deploy = interwebs && yes?('Want to deploy to Heroku?')
 freeze = yes?('Freeze everything?')
-scaffold = ask('Generate a scaffold for your first resource [ex: post title:string body:text] (leave blank to skip)')
+scaffold = ask('Generate a scaffold for your first resource [ex: post title:string body:text] (leave blank to skip):')
 appname = `pwd`.split('/').last.strip
 domain = ask("Enter production domain if other than #{appname}.com:")
 domain = "#{appname}.com" if domain.blank?
@@ -37,12 +37,6 @@ CODE
 git :init
 git :add => '.', :commit => "-m 'first!'"
 
-# Freeze Rails
-if freeze
-  rake 'rails:freeze:gems'
-  git :add => '.', :commit => "-m 'freeze current rails version'"
-end
-
 # Download jQuery
 if interwebs
   run 'curl -L http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js > public/javascripts/jquery.js'
@@ -55,16 +49,25 @@ git :add => '.', :commit => "-m 'add jquery'"
 gem 'thoughtbot-factory_girl', :lib => 'factory_girl', :source  => "http://gems.github.com"
 gem 'thoughtbot-paperclip', :lib => 'paperclip', :source => 'http://gems.github.com'
 gem 'ambethia-smtp-tls', :lib => 'smtp-tls', :source => 'http://gems.github.com/'
+rake 'gems:install', :sudo => true if interwebs
 rake 'gems:unpack gems:build' if freeze
 git :add => '.', :commit => "-m 'add gems'"
 
+# Freeze Rails
+if freeze
+  rake 'rails:freeze:gems'
+  git :add => '.', :commit => "-m 'freeze current rails version'"
+end
+
 # Cucumber
+run 'sudo gem install cucumber' if interwebs
 generate :cucumber, '--testunit'
 rake 'gems:unpack gems:build' if freeze
 git :add => '.', :commit => "-m 'add cucumber'"
 
 # Authentication
 gem 'thoughtbot-clearance', :lib => 'clearance', :source => 'http://gems.github.com'
+rake 'gems:install', :sudo => true if interwebs
 rake 'gems:unpack' if freeze
 generate :clearance
 generate :clearance_features, '-f'
@@ -110,7 +113,7 @@ end
 
 # Start with a reasonable layout to work with
 generate :nifty_layout
-git :add => '.', :commit => "-m 'add nifty_layout'"
+git :add => '.', :commit => "-m 'generate nifty_layout'"
 
 # Set up and deploy on Heroku
 if deploy

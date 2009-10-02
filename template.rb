@@ -77,7 +77,7 @@ git :add => '.', :commit => "-m 'add clearance'"
 
 # Remove the default routes and add root to make clearance happy
 root_route = resource_name ? ":controller => '#{resource_name}', :action => 'index'" : ":controller => 'clearance/sessions', :action => 'new'"
-file 'config/routes.rb', <<-CODE.gsub(/^\s*/,'')
+file 'config/routes.rb', <<-CODE.gsub(/^\s\s/,'')
   ActionController::Routing::Routes.draw do |map|
     map.root #{root_route}
   end
@@ -127,7 +127,8 @@ if deploy
     thoughtbot-factory_girl --source gems.github.com
     ambethia-smtp-tls --source gems.github.com
   CODE
-  git :add => '.', :commit => "-m 'add .gems manifest for heroku'"
+  git :add => '.gems'
+  git :commit => "-m 'add .gems manifest for heroku'"
   run 'heroku create'
   run "heroku rename #{appname}"
   git :push => 'heroku master'

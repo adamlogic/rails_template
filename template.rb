@@ -75,6 +75,15 @@ template do
   rake 'gems:unpack gems:build' if freeze
   git :add => '.', :commit => "-m 'add cucumber'"
 
+  # Rspec
+  gem_with_version "rspec",       :lib => false, :env => 'test'
+  gem_with_version "rspec-rails", :lib => false, :env => 'test'
+  gem_with_version "rspec",       :lib => false, :env => 'cucumber'
+  gem_with_version "rspec-rails", :lib => false, :env => 'cucumber'
+  rake 'gems:unpack' if freeze
+  generate 'rspec'
+  git :add => '.', :commit => "-m 'add rspec'"
+
   # Authentication
   heroku_gem 'thoughtbot-clearance', :lib => 'clearance', :source => 'http://gems.github.com'
   rake 'gems:unpack' if freeze
@@ -94,7 +103,7 @@ template do
 
   # Scaffold first resource (assume authentication is required)
   if scaffold.present?
-    generate 'nifty_scaffold', scaffold
+    generate 'nifty_scaffold --rspec', scaffold
     gsub_file "app/controllers/#{resource_name}_controller.rb", /.*ApplicationController.*/, "\\0\n  before_filter :authenticate\n"
     rake 'db:migrate'
     git :add => '.', :commit => "-m 'generated scaffold for #{resource_name}'"

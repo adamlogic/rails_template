@@ -13,8 +13,6 @@ template do
   interwebs = yes?('Are you connected to the Interwebs? (if not, make sure ~/projects/rails_template is valid)')
   deploy = interwebs && yes?('Want to deploy to Heroku?')
   freeze = yes?('Freeze everything?')
-  scaffold = ask('Generate a scaffold for your first resource [ex: post title:string body:text] (leave blank to skip):')
-  resource_name = scaffold.split(' ').first.downcase.pluralize if scaffold.present?
   appname = `pwd`.split('/').last.strip
   domain = ask("Enter production domain if other than #{appname}.com:")
   domain = "#{appname}.com" if domain.blank?
@@ -165,19 +163,6 @@ template do
   gsub_file 'config/environment.rb', /RAILS_GEM_VERSION.*/, "\\0\n\nDO_NOT_REPLY = 'donotreply@#{domain}'"
   git :add => '.'
   git :commit => "-m 'add constants for clearance'"
-
-  # Scaffold first resource (assume authentication is required)
-  if scaffold.present?
-    generate 'nifty_scaffold --rspec --haml', scaffold
-    gsub_file "app/controllers/#{resource_name}_controller.rb", /.*ApplicationController.*/, <<-CODE.gsub(/^    /,'')
-    \\0
-      before_filter :authenticate
-    CODE
-    run "rm -rf spec/controllers"
-    rake 'db:migrate'
-    git :add => '.'
-    git :commit => "-m 'generated scaffold for #{resource_name}'"
-  end
 
   # Set up gmail for sending mail
   if gmail

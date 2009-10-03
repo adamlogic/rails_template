@@ -104,6 +104,21 @@ template do
       FakeWeb.allow_net_connect = false
     end
   CODE
+  git :add => '.'
+  git :commit => "-m 'add fakeweb'"
+
+  # Default rake task
+  default_task = /^.*task.*default.*\n/
+  gsub_file 'lib/tasks/rspec.rake', default_task, ''
+  gsub_file 'lib/tasks/cucumber.rake', default_task, ''
+  file 'lib/tasks/default.rake', <<-CODE.gsub(/^\s{4}/,'')
+    Rake::Task[:default].prerequisites.clear
+
+    desc "Run cucumber and rspec"
+    task :default => ['spec', 'cucumber']
+  CODE
+  git :add => '.'
+  git :commit => "-m 'add default rake task'"
 
   # Authentication
   heroku_gem 'thoughtbot-clearance', :lib => 'clearance', :source => 'http://gems.github.com'

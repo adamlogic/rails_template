@@ -127,7 +127,11 @@ template do
   # Scaffold first resource (assume authentication is required)
   if scaffold.present?
     generate 'nifty_scaffold --rspec --haml', scaffold
-    gsub_file "app/controllers/#{resource_name}_controller.rb", /.*ApplicationController.*/, "\\0\n  before_filter :authenticate\n"
+    gsub_file "app/controllers/#{resource_name}_controller.rb", /.*ApplicationController.*/, <<-CODE.gsub(/^\s{4}/,'')
+    \\0
+      # uncomment this line to prevent public access
+      # before_filter :authenticate
+    CODE
     rake 'db:migrate'
     git :add => '.'
     git :commit => "-m 'generated scaffold for #{resource_name}'"

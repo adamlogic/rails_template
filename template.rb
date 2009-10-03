@@ -99,7 +99,7 @@ template do
   gem_with_version 'fakeweb', :env => 'test'
   gem_with_version 'fakeweb', :env => 'cucumber'
   rake 'gems:unpack' if freeze
-  append_file 'features/support/env.rb', <<-CODE.gsub(/^\s*/,'')
+  append_file 'features/support/env.rb', <<-CODE.gsub(/^\s{4}/,'')
     Before do
       FakeWeb.allow_net_connect = false
     end
@@ -129,9 +129,9 @@ template do
     generate 'nifty_scaffold --rspec --haml', scaffold
     gsub_file "app/controllers/#{resource_name}_controller.rb", /.*ApplicationController.*/, <<-CODE.gsub(/^\s{4}/,'')
     \\0
-      # uncomment this line to prevent public access
-      # before_filter :authenticate
+      before_filter :authenticate
     CODE
+    run "rm -rf spec/controllers"
     rake 'db:migrate'
     git :add => '.'
     git :commit => "-m 'generated scaffold for #{resource_name}'"

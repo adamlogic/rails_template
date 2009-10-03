@@ -72,7 +72,7 @@ template do
 
   # Static Pages
   if interwebs
-    plugin 'high_voltage', :git => 'git://github.com/thoughtbot/high_voltage.git'  
+    plugin :high_voltage, :git => 'git://github.com/thoughtbot/high_voltage.git'  
   else 
     run 'cp -r ~/projects/rails_template/files/high_voltage vendor/plugins/high_voltage'
   end
@@ -88,6 +88,14 @@ template do
       = link_to 'Sign up', sign_up_path
       = link_to 'Sign in', sign_in_path
   CODE
+
+  # Showoff (for mockups)
+  if interwebs
+    plugin :showoff, :git => 'git://github.com/adamlogic/showoff.git'  
+  else 
+    run 'cp -r ~/projects/rails_template/files/showoff vendor/plugins/showoff'
+  end
+  generate :showoff
 
   # Freeze Rails
   if freeze
@@ -213,6 +221,8 @@ template do
 
   # Start with a reasonable layout to work with
   generate :nifty_layout, '--haml'
+  run 'sass -t compact public/stylesheets/sass/application.sass public/stylesheets/application.css'
+  run 'rm -rf public/stylesheets/sass'
   git :add => '.'
   git :commit => "-m 'generate nifty_layout'"
 

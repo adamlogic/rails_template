@@ -32,7 +32,7 @@ template do
 
   # Prepare .gitignore files
   run 'touch tmp/.gitignore log/.gitignore vendor/.gitignore'
-  file '.gitignore', <<-CODE.gsub(/^\s*/,'')
+  file '.gitignore', <<-CODE.gsub(/^    /,'')
     .DS_Store
     log/*.log
     tmp/*
@@ -99,7 +99,7 @@ template do
   gem_with_version 'fakeweb', :env => 'test'
   gem_with_version 'fakeweb', :env => 'cucumber'
   rake 'gems:unpack' if freeze
-  append_file 'features/support/env.rb', <<-CODE.gsub(/^\s{4}/,'')
+  append_file 'features/support/env.rb', <<-CODE.gsub(/^    /,'')
     Before do
       FakeWeb.allow_net_connect = false
     end
@@ -111,7 +111,7 @@ template do
   default_task = /^.*task.*default.*\n/
   gsub_file 'lib/tasks/rspec.rake', default_task, ''
   gsub_file 'lib/tasks/cucumber.rake', default_task, ''
-  file 'lib/tasks/default.rake', <<-CODE.gsub(/^\s{4}/,'')
+  file 'lib/tasks/default.rake', <<-CODE.gsub(/^    /,'')
     Rake::Task[:default].prerequisites.clear
 
     desc "Run cucumber and rspec"
@@ -131,26 +131,13 @@ template do
 
   # Remove the default routes and add root to make clearance happy
   root_route = resource_name ? ":controller => '#{resource_name}', :action => 'index'" : ":controller => 'clearance/sessions', :action => 'new'"
-  file 'config/routes.rb', <<-CODE.gsub(/^\s\s/,'')
+  file 'config/routes.rb', <<-CODE.gsub(/^    /,'')
     ActionController::Routing::Routes.draw do |map|
       map.root #{root_route}
     end
   CODE
   git :add => '.'
   git :commit => "-m 'set up a new root route and remove defaults'"
-
-  # Scaffold first resource (assume authentication is required)
-  if scaffold.present?
-    generate 'nifty_scaffold --rspec --haml', scaffold
-    gsub_file "app/controllers/#{resource_name}_controller.rb", /.*ApplicationController.*/, <<-CODE.gsub(/^\s{4}/,'')
-    \\0
-      before_filter :authenticate
-    CODE
-    run "rm -rf spec/controllers"
-    rake 'db:migrate'
-    git :add => '.'
-    git :commit => "-m 'generated scaffold for #{resource_name}'"
-  end
 
   # Add global constants for clearance
   append_file 'config/environments/development.rb', "\nHOST = 'localhost:3000'"
@@ -161,9 +148,22 @@ template do
   git :add => '.'
   git :commit => "-m 'add constants for clearance'"
 
+  # Scaffold first resource (assume authentication is required)
+  if scaffold.present?
+    generate 'nifty_scaffold --rspec --haml', scaffold
+    gsub_file "app/controllers/#{resource_name}_controller.rb", /.*ApplicationController.*/, <<-CODE.gsub(/^    /,'')
+    \\0
+      before_filter :authenticate
+    CODE
+    run "rm -rf spec/controllers"
+    rake 'db:migrate'
+    git :add => '.'
+    git :commit => "-m 'generated scaffold for #{resource_name}'"
+  end
+
   # Set up gmail for sending mail
   if gmail
-    environment <<-CODE.gsub(/^\s*/,''), :env => 'production'
+    environment <<-CODE.gsub(/^      /,''), :env => 'production'
       config.action_mailer.smtp_settings = {
         :address        => "smtp.gmail.com",
         :port           => 587,
@@ -176,6 +176,37 @@ template do
   end
   git :add => '.'
   git :commit => "-m 'setup gmail configuration'"
+
+  # Provide a placeholder for S3 info
+  generate :nifty_config, 'paperclip'
+  file 'config/paperclip_config.yml', <<-CODE.gsub(/^    /,'')
+    # USAGE: has_attached_file :photo, { :styles => { :thumb => "24x24#" }}.merge(PAPERCLIP_CONFIG)
+
+    local: &local
+      url:  '/system/:attachment/:style/:id_partition/:basename.:extension'
+      path: '/:rails_root/public/system/:attachment/:style/:id_partition/:basename.:extension'
+
+    s3: &s3
+      storage: :s3
+      s3_credentials: 
+        access_key_id:     
+        secret_access_key: 
+      path:   ':attachment/:id/:style.:extension'
+      bucket: 'vacationtrade.com'
+
+    development:
+      <<: *local
+      #<<: *s3
+
+    test:
+      <<: *local
+
+    production:
+      <<: *s3
+  CODE
+  git :add => '.'
+  git :commit => "-m 'add placeholder for S3 configuration'"
+  
 
   # Start with a reasonable layout to work with
   generate :nifty_layout, '--haml'

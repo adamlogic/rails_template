@@ -46,7 +46,8 @@ template do
 
   # Set up git repository
   git :init
-  git :add => '.', :commit => "-m 'first!'"
+  git :add => '.'
+  git :commit => "-m 'first!'"
 
   # Download jQuery
   if interwebs
@@ -54,7 +55,8 @@ template do
   else
     run 'cp ~/projects/rails_template/files/jquery.js public/javascripts/jquery.js'
   end
-  git :add => '.', :commit => "-m 'add jquery'"
+  git :add => '.'
+  git :commit => "-m 'add jquery'"
 
   # Gems
   heroku_gem 'thoughtbot-factory_girl', :source => 'http://gems.github.com', :lib => 'factory_girl'
@@ -62,18 +64,26 @@ template do
   heroku_gem 'ambethia-smtp-tls',       :source => 'http://gems.github.com', :lib => 'smtp-tls'
   heroku_gem 'mislav-will_paginate',    :source => 'http://gems.github.com', :lib => 'will_paginate'
   rake 'gems:unpack gems:build' if freeze
-  git :add => '.', :commit => "-m 'add gems'"
+  git :add => '.'
+  git :commit => "-m 'add gems'"
+
+  # HAML
+  run "haml --rails ."
+  git :add => '.'
+  git :commit => "-m 'use haml'"
 
   # Freeze Rails
   if freeze
     rake 'rails:freeze:gems'
-    git :add => '.', :commit => "-m 'freeze current rails version'"
+    git :add => '.'
+    git :commit => "-m 'freeze current rails version'"
   end
 
   # Cucumber
   generate :cucumber
   rake 'gems:unpack gems:build' if freeze
-  git :add => '.', :commit => "-m 'add cucumber'"
+  git :add => '.'
+  git :commit => "-m 'add cucumber'"
 
   # Rspec
   gem_with_version "rspec",       :lib => false, :env => 'test'
@@ -82,7 +92,18 @@ template do
   gem_with_version "rspec-rails", :lib => false, :env => 'cucumber'
   rake 'gems:unpack' if freeze
   generate 'rspec'
-  git :add => '.', :commit => "-m 'add rspec'"
+  git :add => '.'
+  git :commit => "-m 'add rspec'"
+
+  # Fakeweb
+  gem_with_version 'fakeweb', :env => 'test'
+  gem_with_version 'fakeweb', :env => 'cucumber'
+  rake 'gems:unpack' if freeze
+  append_file 'features/support/env.rb', <<-CODE.gsub(/^\s*/,'')
+    Before do
+      FakeWeb.allow_net_connect = false
+    end
+  CODE
 
   # Authentication
   heroku_gem 'thoughtbot-clearance', :lib => 'clearance', :source => 'http://gems.github.com'
@@ -90,7 +111,8 @@ template do
   generate :clearance
   generate :clearance_features, '-f'
   rake 'db:migrate'
-  git :add => '.', :commit => "-m 'add clearance'"
+  git :add => '.'
+  git :commit => "-m 'add clearance'"
 
   # Remove the default routes and add root to make clearance happy
   root_route = resource_name ? ":controller => '#{resource_name}', :action => 'index'" : ":controller => 'clearance/sessions', :action => 'new'"
@@ -99,14 +121,16 @@ template do
       map.root #{root_route}
     end
   CODE
-  git :add => '.', :commit => "-m 'set up a new root route and remove defaults'"
+  git :add => '.'
+  git :commit => "-m 'set up a new root route and remove defaults'"
 
   # Scaffold first resource (assume authentication is required)
   if scaffold.present?
-    generate 'nifty_scaffold --rspec', scaffold
+    generate 'nifty_scaffold --rspec --haml', scaffold
     gsub_file "app/controllers/#{resource_name}_controller.rb", /.*ApplicationController.*/, "\\0\n  before_filter :authenticate\n"
     rake 'db:migrate'
-    git :add => '.', :commit => "-m 'generated scaffold for #{resource_name}'"
+    git :add => '.'
+    git :commit => "-m 'generated scaffold for #{resource_name}'"
   end
 
   # Add global constants for clearance
@@ -115,7 +139,8 @@ template do
   append_file 'config/environments/cucumber.rb', "\nHOST = 'localhost:3000'"
   append_file 'config/environments/production.rb', "\nHOST = '#{domain}'"
   gsub_file 'config/environment.rb', /RAILS_GEM_VERSION.*/, "\\0\n\nDO_NOT_REPLY = 'donotreply@#{domain}'"
-  git :add => '.', :commit => "-m 'add constants for clearance'"
+  git :add => '.'
+  git :commit => "-m 'add constants for clearance'"
 
   # Set up gmail for sending mail
   if gmail
@@ -130,22 +155,16 @@ template do
       }
     CODE
   end
+  git :add => '.'
+  git :commit => "-m 'setup gmail configuration'"
 
   # Start with a reasonable layout to work with
-  generate :nifty_layout
-  git :add => '.', :commit => "-m 'generate nifty_layout'"
+  generate :nifty_layout, '--haml'
+  git :add => '.'
+  git :commit => "-m 'generate nifty_layout'"
 
   # Set up and deploy on Heroku
   if deploy
-    file '.gems', <<-CODE.gsub(/^\s*/,'') unless freeze
-      rails --version 2.3.3
-      thoughtbot-paperclip --source gems.github.com
-      thoughtbot-clearance --source gems.github.com
-      thoughtbot-factory_girl --source gems.github.com
-      ambethia-smtp-tls --source gems.github.com
-    CODE
-    git :add => '.gems'
-    git :commit => "-m 'add .gems manifest for heroku'"
     run 'heroku create'
     run "heroku rename #{appname}"
     git :push => 'heroku master'

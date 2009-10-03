@@ -10,7 +10,7 @@ template do
 
   # Gather some info
   puts
-  interwebs = yes?('Are you connected to the Interwebs?')
+  interwebs = yes?('Are you connected to the Interwebs? (if not, make sure ~/projects/rails_template is valid)')
   deploy = interwebs && yes?('Want to deploy to Heroku?')
   freeze = yes?('Freeze everything?')
   scaffold = ask('Generate a scaffold for your first resource [ex: post title:string body:text] (leave blank to skip):')
@@ -72,6 +72,25 @@ template do
   git :add => '.'
   git :commit => "-m 'use haml'"
 
+  # Static Pages
+  if interwebs
+    plugin 'high_voltage', :git => 'git://github.com/thoughtbot/high_voltage.git'  
+  else 
+    run 'cp -r ~/projects/rails_template/files/high_voltage vendor/plugins/high_voltage'
+  end
+  file 'app/views/pages/home.html.haml', <<-CODE.gsub(/^    /,'')
+    - title 'Home Page'
+
+    %p find me in app/views/pages/home.html.haml
+    %p link to me with page_path(:home)
+
+    - if signed_in?
+      = link_to 'Sign out', sign_out_path
+    - else
+      = link_to 'Sign up', sign_up_path
+      = link_to 'Sign in', sign_in_path
+  CODE
+
   # Freeze Rails
   if freeze
     rake 'rails:freeze:gems'
@@ -130,10 +149,9 @@ template do
   git :commit => "-m 'add clearance'"
 
   # Remove the default routes and add root to make clearance happy
-  root_route = resource_name ? ":controller => '#{resource_name}', :action => 'index'" : ":controller => 'clearance/sessions', :action => 'new'"
   file 'config/routes.rb', <<-CODE.gsub(/^    /,'')
     ActionController::Routing::Routes.draw do |map|
-      map.root #{root_route}
+      map.root :controller => 'high_voltage/pages', :action => 'show', :id => 'home'
     end
   CODE
   git :add => '.'

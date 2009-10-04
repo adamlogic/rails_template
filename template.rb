@@ -212,6 +212,9 @@ template do
     test:
       <<: *local
 
+    cucumber:
+      <<: *local
+
     production:
       <<: *s3
   CODE
